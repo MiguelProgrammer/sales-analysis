@@ -1,9 +1,12 @@
 package com.vybrant.sales.analysis.service;
 
+
 import com.vybrant.sales.analysis.domain.Client;
+import com.vybrant.sales.analysis.domain.Item;
 import com.vybrant.sales.analysis.domain.Sale;
 import com.vybrant.sales.analysis.domain.Salesman;
 import com.vybrant.sales.analysis.repository.ClientRepository;
+import com.vybrant.sales.analysis.repository.ItemRepository;
 import com.vybrant.sales.analysis.repository.SaleRepository;
 import com.vybrant.sales.analysis.repository.SalesmanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,23 +14,17 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class DataAnalysisService {
 
     @Autowired
     private ResourceLoader resourceLoader;
-
-    private List<Client> clientList = new ArrayList<>();
-    private List<Salesman> salesmanList = new ArrayList<>();
-    private List<Sale> saleList = new ArrayList<>();
-
 
     @Autowired
     private ClientRepository clientRepository;
@@ -38,6 +35,18 @@ public class DataAnalysisService {
     @Autowired
     private SaleRepository saleRepository;
 
+    @Autowired
+    private ItemRepository itemRepository;
+
+    private final List<Client> clientList = new ArrayList<>();
+    private final List<Salesman> salesmanList = new ArrayList<>();
+    private final Set<Sale> saleList = new HashSet<>();
+
+
+    public DataAnalysisService(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
+
     public void readFileFromResources(String filename) throws IOException {
 
         String caminhoIn = "C:\\dev\\data\\in\\" + filename;
@@ -46,6 +55,7 @@ public class DataAnalysisService {
         readDataIn(caminhoIn);
         Files.deleteIfExists(Path.of(caminhoOut));
         writeDataOut(caminhoOut, caminhoIn);
+
     }
 
     private void readDataIn(String caminhoIn) throws IOException {
@@ -82,13 +92,66 @@ public class DataAnalysisService {
 
         if (Objects.nonNull(dados[0])) {
             if (dados[0].equals("001")) {
-                salesmanList.add(salesmanRepository.save(new Salesman().CreateSalesman(dados)));
+
+                String idSalesman = dados[1];
+                String name = dados[2];
+                BigDecimal value = new BigDecimal(dados[3]);
+                Salesman salesman = new Salesman(idSalesman, name, value);
+
+                salesmanList.add(salesmanRepository.save(salesman));
+                return;
             }
             if (dados[0].equals("002")) {
-                clientList.add(clientRepository.save(new Client().CreateClient(dados)));
+
+                String idClient = dados[1];
+                String name = dados[2];
+                Client client = new Client(idClient, name);
+
+                clientList.add(clientRepository.save(client));
+                return;
             }
             if (dados[0].equals("003")) {
-                saleList.add(saleRepository.save(new Sale().CreateSale(dados)));
+
+                Sale sale = new Sale();
+                String[] dataItem = dados[2].split(",");
+                String dadosItem1 = dataItem[0].replaceAll("\\[", "");
+                String dadosItem2 = dataItem[1];
+                String dadosItem3 = dataItem[2].replaceAll("]", "");
+
+                Set<Item> itemList = new HashSet<>();
+                List<String> dadosItem = Arrays.asList(dadosItem1, dadosItem2, dadosItem3);
+
+                dadosItem.stream().forEach(it -> {
+
+                    String[] itemSplited = it.split("-");
+
+                    Long idItem = Long.parseLong(itemSplited[0]);
+                    Integer quantity = Integer.parseInt(itemSplited[1]);
+                    BigDecimal price = new BigDecimal(itemSplited[2]);
+
+                    Item item = new Item(idItem, quantity, price);
+                    Item save = itemRepository.save(item);
+                    itemList.add(save);
+
+                });
+
+                Optional<Salesman> salesmanByIdName = salesmanRepository.findByName(dados[3]);
+                if (salesmanByIdName.isPresent()) {
+
+                    Salesman salesman = salesmanByIdName.get();
+
+                    String idSale = dados[1];
+                    sale = new Sale(idSale, itemList, salesman);
+                    Sale save = saleRepository.save(sale);
+
+                    /**
+                     * UPDATE SALE LIST SALESMAN
+                     */
+                    saleList.add(save);
+                    salesman.setSale(sale);
+                    salesmanRepository.saveAndFlush(salesman);
+                }
+
             }
         }
     }

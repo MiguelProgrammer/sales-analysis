@@ -3,24 +3,20 @@ package com.vybrant.sales.analysis.domain;
 import com.vybrant.sales.analysis.enums.BusinessType;
 import com.vybrant.sales.analysis.enums.Type;
 import jakarta.persistence.*;
-import lombok.*;
 
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+import java.io.Serializable;
+
 @Entity
 @Table(name = "analysis_client")
-public class Client {
+public class Client implements Serializable {
 
     /**
      * 002çClientIDçNameçBusiness
      * 002ç2345675434544345çJose da SilvaçRural
      */
+
     @Id
-    @Setter(AccessLevel.PRIVATE)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(value = EnumType.STRING)
@@ -37,8 +33,53 @@ public class Client {
     @Column(name = "business_type")
     private BusinessType businessType;
 
-    public Client CreateClient(String[] dados) {
-        return Client.builder().type(Type.CLIENT).idClient(dados[1]).name(dados[2])
-                .businessType(BusinessType.valueOf(dados[3].toUpperCase())).build();
+    public Client() {
+    }
+
+    public Client(String idClient, String name) {
+        this.type = Type.CLIENT;
+        this.idClient = idClient;
+        this.name = name;
+        this.businessType = BusinessType.RURAL;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public String getIdClient() {
+        return idClient;
+    }
+
+    public void setIdClient(String idClient) {
+        this.idClient = idClient;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BusinessType getBusinessType() {
+        return businessType;
+    }
+
+    public void setBusinessType(BusinessType businessType) {
+        this.businessType = businessType;
     }
 }
