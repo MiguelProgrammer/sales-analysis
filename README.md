@@ -65,20 +65,15 @@
   * Docker Hub -> ``` docker push migprogrammer/sales:latest ```
   * Lombok
 
-## Dúvidas
-  * Dados de venda
-    * Os dados de venda possuem o identificador 003 e seguem o seguinte formato:
-      * 003çSale IDç[Item ID-Item Quantity-Item Price]çSalesman name -> 003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çPedro
-      * ``` Não ficou claro a divisão dos atributos de venda com seus respectivos valores.```
-
 ## Itens restantes
   * ID da venda mais cara
   * O pior vendedor, que vendeu o menor valor acumulado
 
 ## Execução
-  * Crie um diretorio
-    * C:\dev\data
-      * id/dados.txt
-      * out
+  * Crie os diretorios abaixo
+    * C:\processa arquivos\data\
+      * Diretorio chamado in
+        * dados.txt
+      * Diretorio chamado out
   * Execute a aplicação
     
