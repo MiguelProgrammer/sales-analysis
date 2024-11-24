@@ -3,9 +3,13 @@ package com.vybrant.sales.analysis.domain;
 import com.vybrant.sales.analysis.enums.BusinessType;
 import com.vybrant.sales.analysis.enums.Type;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "analysis_client")
 public class Client implements Serializable {
@@ -17,6 +21,7 @@ public class Client implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "alc_id")
     private Long id;
 
     @Enumerated(value = EnumType.STRING)
@@ -43,43 +48,4 @@ public class Client implements Serializable {
         this.businessType = BusinessType.RURAL;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-    }
-
-    public String getIdClient() {
-        return idClient;
-    }
-
-    public void setIdClient(String idClient) {
-        this.idClient = idClient;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public BusinessType getBusinessType() {
-        return businessType;
-    }
-
-    public void setBusinessType(BusinessType businessType) {
-        this.businessType = businessType;
-    }
 }

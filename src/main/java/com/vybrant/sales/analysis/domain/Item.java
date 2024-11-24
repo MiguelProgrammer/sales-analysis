@@ -6,8 +6,10 @@ import lombok.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+@Getter
+@Setter
 @Entity
-@Table(name = "analysis_item_sale")
+@Table(name = "analysis_item")
 public class Item implements Serializable {
 
     /**
@@ -17,6 +19,7 @@ public class Item implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "id_item")
@@ -37,35 +40,4 @@ public class Item implements Serializable {
         this.price = price;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getIdItem() {
-        return idItem;
-    }
-
-    public void setIdItem(Long idItem) {
-        this.idItem = idItem;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
 }

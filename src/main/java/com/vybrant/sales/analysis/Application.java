@@ -1,10 +1,12 @@
 package com.vybrant.sales.analysis;
 
 import com.vybrant.sales.analysis.service.DataAnalysisService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@Slf4j
 @SpringBootApplication
 public class Application {
 
@@ -20,10 +22,10 @@ public class Application {
 
 		try {
 
+			log.info("Iniciando programa ...");
 			dataAnalysisService.readFileFromResources("dados.txt");
-
 		} catch (Exception e){
-			System.err.println(e);
+			log.error("Erro -> {}", e.getMessage());
 		}
 	}
 }

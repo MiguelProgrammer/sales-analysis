@@ -9,19 +9,28 @@ import com.vybrant.sales.analysis.repository.ClientRepository;
 import com.vybrant.sales.analysis.repository.ItemRepository;
 import com.vybrant.sales.analysis.repository.SaleRepository;
 import com.vybrant.sales.analysis.repository.SalesmanRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
+@Slf4j
 @Service
 public class DataAnalysisService {
+
+    @Value("${caminho.entrada.arquivo}")
+    private String caminhoIn;
+
+    @Value("${caminho.saida.arquivo}")
+    private String caminhoOut;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -38,6 +47,12 @@ public class DataAnalysisService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private WriterFileService writeInFile;
+
+    @Autowired
+    private ReaderFileService readerFileService;
+
     private final List<Client> clientList = new ArrayList<>();
     private final List<Salesman> salesmanList = new ArrayList<>();
     private final Set<Sale> saleList = new HashSet<>();
@@ -47,113 +62,126 @@ public class DataAnalysisService {
         this.resourceLoader = resourceLoader;
     }
 
+    /**
+     * LEITURA DO ARQUIVO
+     * PROCESSAMENTO D ARQUIVO
+     * PERSISTENCIA EM BASE
+     * ESCRITA EM ARQUIVO
+     *
+     * @param filename
+     * @throws IOException
+     */
     public void readFileFromResources(String filename) throws IOException {
 
-        String caminhoIn = "C:\\dev\\data\\in\\" + filename;
-        String caminhoOut = "C:\\dev\\data\\out\\" + filename;
+        caminhoIn = caminhoIn.concat(filename);
+        caminhoOut = caminhoOut.concat(filename);
 
-        readDataIn(caminhoIn);
+        log.info("Leitura do arquivo de entrada iniciada ...");
+        readerFileService.readDataIn(caminhoIn);
+
         Files.deleteIfExists(Path.of(caminhoOut));
-        writeDataOut(caminhoOut, caminhoIn);
+
+        log.info("Escrita do arquivo de saída iniciada ...");
+        writeInFile.writeDataOut(caminhoOut, caminhoIn, clientList, salesmanList);
 
     }
 
-    private void readDataIn(String caminhoIn) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(caminhoIn))) {
 
-            String linha;
-            while ((linha = br.readLine()) != null) {
-                this.preparedData(linha);
-            }
-        }
-    }
 
-    private void writeDataOut(String caminhoOut, String caminhoIn) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoOut, true))) {
+    /**
+     * SPLIT DADOS DO ARQUIVO PARA SEUS RESPECTIVOS DOMINIOS
+     * VENDEDOR, CLIENTE E VENDAS
+     *
+     * @param linha
+     */
+    public void preparedData(String linha) {
 
-            String smsCliente = "Quantidade de clientes no arquivo de entrada = " + clientList.size();
-            String smsVendedor = "Quantidade de vendedores no arquivo de entrada = " + salesmanList.size();
-
-            bw.write(smsCliente);
-            bw.newLine();
-            bw.write(smsVendedor);
-            bw.newLine();
-            bw.close();
-
-            Files.createFile(Paths.get(caminhoOut));
-
-        } catch (IOException e) {
-            //System.out.println("Erro " + e.getMessage());
-        }
-    }
-
-    private void preparedData(String linha) {
         String[] dados = linha.split("ç");
 
         if (Objects.nonNull(dados[0])) {
-            if (dados[0].equals("001")) {
 
-                String idSalesman = dados[1];
-                String name = dados[2];
-                BigDecimal value = new BigDecimal(dados[3]);
-                Salesman salesman = new Salesman(idSalesman, name, value);
+            switch (dados[0]) {
 
-                salesmanList.add(salesmanRepository.save(salesman));
-                return;
-            }
-            if (dados[0].equals("002")) {
+                case "001" -> {
 
-                String idClient = dados[1];
-                String name = dados[2];
-                Client client = new Client(idClient, name);
-
-                clientList.add(clientRepository.save(client));
-                return;
-            }
-            if (dados[0].equals("003")) {
-
-                Sale sale = new Sale();
-                String[] dataItem = dados[2].split(",");
-                String dadosItem1 = dataItem[0].replaceAll("\\[", "");
-                String dadosItem2 = dataItem[1];
-                String dadosItem3 = dataItem[2].replaceAll("]", "");
-
-                Set<Item> itemList = new HashSet<>();
-                List<String> dadosItem = Arrays.asList(dadosItem1, dadosItem2, dadosItem3);
-
-                dadosItem.stream().forEach(it -> {
-
-                    String[] itemSplited = it.split("-");
-
-                    Long idItem = Long.parseLong(itemSplited[0]);
-                    Integer quantity = Integer.parseInt(itemSplited[1]);
-                    BigDecimal price = new BigDecimal(itemSplited[2]);
-
-                    Item item = new Item(idItem, quantity, price);
-                    Item save = itemRepository.save(item);
-                    itemList.add(save);
-
-                });
-
-                Optional<Salesman> salesmanByIdName = salesmanRepository.findByName(dados[3]);
-                if (salesmanByIdName.isPresent()) {
-
-                    Salesman salesman = salesmanByIdName.get();
-
-                    String idSale = dados[1];
-                    sale = new Sale(idSale, itemList, salesman);
-                    Sale save = saleRepository.save(sale);
-
-                    /**
-                     * UPDATE SALE LIST SALESMAN
-                     */
-                    saleList.add(save);
-                    salesman.setSale(sale);
-                    salesmanRepository.saveAndFlush(salesman);
+                    String idSalesman = dados[1];
+                    String name = dados[2];
+                    BigDecimal value = new BigDecimal(dados[3]);
+                    Salesman salesman = new Salesman(idSalesman, name, value);
+                    salesmanList.add(salesmanRepository.save(salesman));
                 }
 
+                case "002" -> {
+
+                    String idClient = dados[1];
+                    String name = dados[2];
+                    Client client = new Client(idClient, name);
+
+                    clientList.add(clientRepository.save(client));
+                }
+
+                case "003" -> {
+
+                    AtomicReference<BigDecimal> valorTotalCompra =
+                            new AtomicReference<>(new BigDecimal(String.valueOf(BigDecimal.ZERO)));
+                    Set<Item> itemList = new HashSet<>();
+                    List<String> dadosItem = preparedSaleData(dados[2]);
+
+
+                    dadosItem.forEach(it -> {
+
+                        String[] itemSplited = it.split("-");
+
+                        Long idItem = Long.parseLong(itemSplited[0]);
+                        Integer quantity = Integer.parseInt(itemSplited[1]);
+                        BigDecimal price = new BigDecimal(itemSplited[2]);
+
+                        valorTotalCompra.updateAndGet(v -> v.add(price));
+
+                        Item item = new Item(idItem, quantity, price);
+                        Item save = itemRepository.save(item);
+
+                        itemList.add(save);
+
+                    });
+
+                    Optional<Salesman> salesmanByIdName = salesmanRepository.findByName(dados[3]);
+
+                    if (salesmanByIdName.isPresent()) {
+
+                        Salesman salesman = salesmanByIdName.get();
+
+                        String idSale = dados[1];
+                        Sale sale = new Sale(idSale, itemList, salesman, valorTotalCompra.get());
+                        Sale save = saleRepository.save(sale);
+
+                        /**
+                         * ATUALIZA VENDA E VENDEDOR
+                         */
+                        saleList.add(save);
+                        salesman.setSale(sale);
+                        salesmanRepository.saveAndFlush(salesman);
+                    }
+                }
             }
+
         }
     }
 
+    /**
+     * PREPARA DADOS DAS VENDAS
+     *
+     * @param dados
+     * @return
+     */
+    private List<String> preparedSaleData(String dados) {
+
+        String[] dataItem = dados.split(",");
+
+        String dadosItem1 = dataItem[0].replaceAll("\\[", "");
+        String dadosItem2 = dataItem[1];
+        String dadosItem3 = dataItem[2].replaceAll("]", "");
+
+        return Arrays.asList(dadosItem1, dadosItem2, dadosItem3);
+    }
 }
