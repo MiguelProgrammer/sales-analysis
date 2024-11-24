@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public class Sale implements Serializable {
      */
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
 
@@ -40,6 +41,9 @@ public class Sale implements Serializable {
 
     @OneToOne(targetEntity = Salesman.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE, optional = false)
     private Salesman salesman;
+
+    @Column(name = "date")
+    private Date date = new Date();
 
     public Sale() {
     }

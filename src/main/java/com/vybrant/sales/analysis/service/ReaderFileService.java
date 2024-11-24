@@ -24,10 +24,11 @@ public class ReaderFileService {
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoIn))) {
 
             String linha;
-            log.info("Processamento de arquivo iniciada ...");
+            log.info("Processamento de arquivo iniciado ...");
             while ((linha = br.readLine()) != null) {
                 dataAnalysisService.preparedData(linha);
             }
+            log.info("Processamento de arquivo finalizado ...");
 
         } catch (Exception e) {
             log.error("Erro -> {}", e.getMessage());

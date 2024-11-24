@@ -73,17 +73,15 @@ public class DataAnalysisService {
      */
     public void readFileFromResources(String filename) throws IOException {
 
-        caminhoIn = caminhoIn.concat(filename);
-        caminhoOut = caminhoOut.concat(filename);
-
         log.info("Leitura do arquivo de entrada iniciada ...");
-        readerFileService.readDataIn(caminhoIn);
+        readerFileService.readDataIn(caminhoIn + filename);
+        log.info("Leitura do arquivo de entrada finalizada...");
 
-        Files.deleteIfExists(Path.of(caminhoOut));
+        Files.deleteIfExists(Path.of(caminhoOut + filename));
 
         log.info("Escrita do arquivo de saída iniciada ...");
-        writeInFile.writeDataOut(caminhoOut, caminhoIn, clientList, salesmanList);
-
+        writeInFile.writeDataOut(caminhoOut + filename, caminhoIn + filename, clientList, salesmanList);
+        log.info("Escrita do arquivo de saída finalizada ...");
     }
 
 
@@ -108,7 +106,13 @@ public class DataAnalysisService {
                     String name = dados[2];
                     BigDecimal value = new BigDecimal(dados[3]);
                     Salesman salesman = new Salesman(idSalesman, name, value);
-                    salesmanList.add(salesmanRepository.save(salesman));
+                    List<Salesman> byName = salesmanRepository.getByName(name);
+
+                    if(byName.isEmpty()) {
+                        salesmanList.add(salesmanRepository.save(salesman));
+                    } else {
+                        log.info("Salesman já existente!");
+                    }
                 }
 
                 case "002" -> {
@@ -138,29 +142,40 @@ public class DataAnalysisService {
 
                         valorTotalCompra.updateAndGet(v -> v.add(price));
 
-                        Item item = new Item(idItem, quantity, price);
-                        Item save = itemRepository.save(item);
+                        Item save = null;
+                        Optional<Item> itemByIdItem = itemRepository.findByIdItem(idItem);
+                        if(!itemByIdItem.isPresent()) {
+                            Item item = new Item(idItem, quantity, price);
+                            save  = itemRepository.save(item);
+                        } else {
+                            log.info("Item já existente!");
+                        }
 
                         itemList.add(save);
 
                     });
 
-                    Optional<Salesman> salesmanByIdName = salesmanRepository.findByName(dados[3]);
+                    List<Salesman> salesmanList = salesmanRepository.getByName(dados[3]);
 
-                    if (salesmanByIdName.isPresent()) {
+                    if (!salesmanList.isEmpty()) {
 
-                        Salesman salesman = salesmanByIdName.get();
+                       Salesman salesman = salesmanList.get(0);
 
                         String idSale = dados[1];
                         Sale sale = new Sale(idSale, itemList, salesman, valorTotalCompra.get());
-                        Sale save = saleRepository.save(sale);
+                        List<Sale> byIdSale = saleRepository.findByIdSale(idSale);
+                        if(byIdSale.isEmpty()) {
+                            Sale save = saleRepository.save(sale);
 
-                        /**
-                         * ATUALIZA VENDA E VENDEDOR
-                         */
-                        saleList.add(save);
-                        salesman.setSale(sale);
-                        salesmanRepository.saveAndFlush(salesman);
+                            /**
+                             * ATUALIZA VENDA E VENDEDOR
+                             */
+                            saleList.add(save);
+                            salesman.setSale(sale);
+                            salesmanRepository.saveAndFlush(salesman);
+                        } else {
+                            log.info("Sale já existente!");
+                        }
                     }
                 }
             }
@@ -183,5 +198,9 @@ public class DataAnalysisService {
         String dadosItem3 = dataItem[2].replaceAll("]", "");
 
         return Arrays.asList(dadosItem1, dadosItem2, dadosItem3);
+    }
+
+    public String getCaminhoIn() {
+        return caminhoIn;
     }
 }

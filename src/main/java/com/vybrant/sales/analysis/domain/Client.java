@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -20,7 +21,7 @@ public class Client implements Serializable {
      */
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "alc_id")
     private Long id;
 
@@ -37,6 +38,9 @@ public class Client implements Serializable {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "business_type")
     private BusinessType businessType;
+
+    @Column(name = "date")
+    private Date date = new Date();
 
     public Client() {
     }

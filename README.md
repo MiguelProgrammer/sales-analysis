@@ -55,7 +55,15 @@
 
 ## Solução
 
-    Aplicação construída:
+![alt text](https://i.imgur.com/ELCaceu.png)
+    
+  * A cada arquivo.txt inserido no path indicado, a aplicação irá executar os passos construidos para tratamento do arquivo
+  * É verificado o formato do arquivo, se já existe algum item, venda, vendedor já inseridos, assim o registro em base desse dado é evitado
+  * A cada arquivo lido, há um novo arquivo de saída respectivo
+  * Os dados são persistidos em base.
+    
+
+## Solução técnica
 
   * Orientada a Objetos
   * Arquitetura em Camadas
@@ -65,10 +73,6 @@
   * Docker Hub -> ``` docker push migprogrammer/sales:latest ```
   * Lombok
 
-## Itens restantes
-  * ID da venda mais cara
-  * O pior vendedor, que vendeu o menor valor acumulado
-
 ## Execução
   * Crie os diretorios abaixo
     * C:\processa arquivos\data\
@@ -76,4 +80,13 @@
         * dados.txt
       * Diretorio chamado out
   * Execute a aplicação
+  * Comando para rodar a aplicação ``` java -jar nome-application.jar ```
+
+## Soluções alternativas
+
+  * Os itens de venda poderiam ser tratados com spring batch porque já muitas ferramentas já existentes que poderiam diminuir o gap
+  * Os dados poderiam também ser tratados com mensageria
+    * Arquivos incorretos seria publicados em filas de arquivos incorretos, posterior a isso, os responsáveis poderiam receber um relatório de arquivos incorretos
+  * Poderia tratar outros tipos de arquivos, desta forma, haveria outros módulos voltados para o tipo de arquivo inserido
+    * Este é um ponto importante, para cada typo de arquivo há uma tratativa diferente, além de deixar implicito que deverá haver um template a ser seguido
     

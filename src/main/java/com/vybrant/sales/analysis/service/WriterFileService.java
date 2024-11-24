@@ -14,6 +14,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -35,8 +37,8 @@ public class WriterFileService {
     public void writeDataOut(String caminhoOut, String caminhoIn, List<Client> clientList, List<Salesman> salesmanList) {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoOut, true))) {
-
-            String styleDoc = "--------------------------------- RELATÓRIO ---------------------------------";
+            SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String styleDoc = "--------------------------------- RELATÓRIO "+ formato.format(new Date()) +" --------------------";
             writeInFile(bw, styleDoc);
 
             String nomeArquivo = "* Arquivo processado = " + new PathResource(caminhoIn).getFilename();
