@@ -90,3 +90,23 @@
   * Poderia tratar outros tipos de arquivos, desta forma, haveria outros módulos voltados para o tipo de arquivo inserido
     * Este é um ponto importante, para cada typo de arquivo há uma tratativa diferente, além de deixar implicito que deverá haver um template a ser seguido
     
+## Dados & Formatos arquivo de entrada
+````
+001ç1234000034çMariaç50000
+001ç3000065434çSarahç4300
+002ç2302309005çDéborajçRural
+002ç3430400002çJéssicaçRural
+003ç19ç[1-10-130,2-30-32.50,3-4-3.40]çMaria
+003ç90ç[41-34-10,2-33-13.50,4-12-0.230]çSarah
+````
+
+## Dados & Formatos arquivo de saída - relatório
+````
+    --------------------------------- RELATÓRIO 24/11/2024 03:02:06 --------------------
+* Arquivo processado = miguel.txt
+* Quantidade de clientes no arquivo de entrada = 2
+* Quantidade de vendedores no arquivo de entrada = 2
+* ID da venda mais cara = 19 | Valor R$ 165.90
+* O pior vendedor, que vendeu o menor valor acumulado = 90 | Valor R$ 23.73
+--------------------------------- RELATÓRIO 24/11/2024 03:02:06 --------------------
+````
